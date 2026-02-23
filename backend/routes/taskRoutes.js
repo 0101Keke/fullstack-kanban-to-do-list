@@ -4,59 +4,107 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Create task
+/*Create Task*/
 router.post('/', protect, async (req, res) => {
-  const { title, description } = req.body;
   try {
-    const task = await Task.create({ title, description, user: req.user._id });
+    const { title, topic, due, repeat } = req.body;
+
+    if (!title || !due)
+      return res.status(400).json({ message: 'Title and due date required' });
+
+    const task = await Task.create({
+      title,
+      topic,
+      due,
+      repeat,
+      user: req.user._id
+    });
+
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Get all tasks for user
+/*Get User Tasks*/
 router.get('/', protect, async (req, res) => {
   try {
-    const tasks = await Task.find({ user: req.user._id });
+    const tasks = await Task.find({
+      user: req.user._id,
+      deleted: false
+    }).sort({ createdAt: -1 });
+
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Update task
+/*Update Task*/
 router.put('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
+
     if (!task) return res.status(404).json({ message: 'Task not found' });
+
     if (task.user.toString() !== req.user._id.toString())
       return res.status(401).json({ message: 'Not authorized' });
 
-    task.title = req.body.title || task.title;
-    task.description = req.body.description || task.description;
-    task.status = req.body.status || task.status;
+    task.title = req.body.title ?? task.title;
+    task.topic = req.body.topic ?? task.topic;
+    task.status = req.body.status ?? task.status;
+    task.due = req.body.due ?? task.due;
+    task.repeat = req.body.repeat ?? task.repeat;
 
-    const updatedTask = await task.save();
-    res.json(updatedTask);
+    if (task.status === 'done') {
+      task.completed = new Date();
+
+      if (task.repeat !== 'none') {
+        const newDate = new Date(task.due);
+        if (task.repeat === 'daily') newDate.setDate(newDate.getDate() + 1);
+        if (task.repeat === 'weekly') newDate.setDate(newDate.getDate() + 7);
+
+        await Task.create({
+          title: task.title,
+          topic: task.topic,
+          due: newDate,
+          repeat: task.repeat,
+          user: task.user
+        });
+      }
+    }
+
+    const updated = await task.save();
+    res.json(updated);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Delete task
+/*Soft Delete*/
 router.delete('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
-    if (task.user.toString() !== req.user._id.toString())
-      return res.status(401).json({ message: 'Not authorized' });
 
-    await task.remove();
-    res.json({ message: 'Task removed' });
+    task.deleted = true;
+    await task.save();
+
+    res.json({ message: 'Moved to recycle bin' });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+/*Get Recycle*/
+router.get('/recycle/all', protect, async (req, res) => {
+  const tasks = await Task.find({
+    user: req.user._id,
+    deleted: true
+  });
+  res.json(tasks);
 });
 
 export default router;

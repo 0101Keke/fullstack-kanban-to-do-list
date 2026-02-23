@@ -4,16 +4,25 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 
-function App() {
-  const token = localStorage.getItem('token');
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/" />;
+}
 
+function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login navigate={(path) => window.location.href = path} />} />
-        <Route path="/register" element={<Register navigate={(path) => window.location.href = path} />} />
-        <Route path="/dashboard" element={token ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
