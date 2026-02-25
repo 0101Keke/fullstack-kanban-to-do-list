@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "../services/api";
+import API from "../services/api";
 import "../styles/auth.css";
 //import { useEffect } from "react";
 
@@ -33,7 +33,7 @@ function Login() {
     e.preventDefault(); // 🔥 VERY IMPORTANT
 
     try {
-      const res = await axios.post("/auth/login", formData);
+      const res = await API.post("/auth/login", formData);
 
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
