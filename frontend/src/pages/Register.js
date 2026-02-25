@@ -7,6 +7,7 @@ function Register() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    username: "",
     email: "",
     password: ""
   });
@@ -44,6 +45,15 @@ function Register() {
         {error && <p className="error-message">{error}</p>}
 
         <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
+
           <input
             type="email"
             name="email"
