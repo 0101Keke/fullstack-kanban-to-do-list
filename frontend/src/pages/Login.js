@@ -33,7 +33,7 @@ function Login() {
     e.preventDefault(); // 🔥 VERY IMPORTANT
 
     try {
-      const res = await API.post("/auth/login", formData);
+      const res = await axios.post("/auth/login", formData);
 
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
