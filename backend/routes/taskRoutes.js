@@ -55,9 +55,19 @@ router.put('/:id', protect, async (req, res) => {
     task.status = req.body.status ?? task.status;
     task.due = req.body.due ?? task.due;
     task.repeat = req.body.repeat ?? task.repeat;
+    task.subtasks = req.body.subtasks ?? task.subtasks;
+    task.completedAt = req.body.completedAt !== undefined ? req.body.completedAt : task.completedAt;
+
+    if (req.body.status && req.body.status !== "done") {
+      task.completedAt = null;
+    }
+
+    if (req.body.status && req.body.status !== "done") {
+      task.completedAt = null;
+    }
 
     if (task.status === 'done') {
-      task.completed = new Date();
+      task.completedAt = new Date();
 
       if (task.repeat !== 'none') {
         const newDate = new Date(task.due);
@@ -105,6 +115,33 @@ router.get('/recycle/all', protect, async (req, res) => {
     deleted: true
   });
   res.json(tasks);
+});
+
+/*Restore Task*/
+router.put("/restore/:id", protect, async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "todo",
+        deletedAt: null
+      },
+      { new: true }
+    );
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/*Permanent Delete*/
+router.delete("/permanent/:id", protect,  async (req, res) => {
+  try {
+    await Task.findByIdAndDelete(req.params.id);
+    res.json({ message: "Task permanently deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

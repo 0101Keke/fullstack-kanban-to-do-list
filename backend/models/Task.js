@@ -40,8 +40,30 @@ const TaskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
 
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+
+  deletedAt: {
+    type: Date
+  },
+
+  completedAt: {
+    type: Date
+  },
+
+  subtasks: [
+    {
+      text: String,
+      done: {
+        type: Boolean,
+        default: false
+      }
+    }
+  ]
 }, { timestamps: true });
 
 export default mongoose.model('Task', TaskSchema);
