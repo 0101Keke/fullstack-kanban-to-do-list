@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Column from "../components/Column";
 import RecycleModal from "../components/RecycleModal";
 import "../styles/dashboard.css";
-import axios from "../services/api";
+import API from "../services/api";
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState([]);
@@ -24,7 +24,7 @@ export default function Dashboard() {
   useEffect(() => {
     const loadTasks = async () => {
       try {
-        const { data } = await axios.get("/tasks");
+        const { data } = await API.get("/tasks");
         setTasks(data);
       } catch (err) {
         console.error("Failed to load tasks:", err);
@@ -53,7 +53,7 @@ export default function Dashboard() {
     };
 
     try {
-      const { data } = await axios.post("/tasks", newTask);
+      const { data } = await API.post("/tasks", newTask);
 
       setTasks(prev => [...prev, data]);
 
@@ -73,7 +73,7 @@ export default function Dashboard() {
 
   const updateTask = async (id, updates) => {
     try {
-      const { data } = await axios.put(`/tasks/${id}`, updates);
+      const { data } = await API.put(`/tasks/${id}`, updates);
 
       setTasks(prev =>
         prev.map(t => (t._id === id ? data : t))
@@ -92,7 +92,7 @@ export default function Dashboard() {
 
     try {
       //Backend handles delted flag and recycle logic, we just remove from UI
-      await axios.delete(`/tasks/${id}`);
+      await API.delete(`/tasks/${id}`);
 
       // Remove from UI
       setTasks(prev => prev.filter(t => t._id !== id));
@@ -106,7 +106,7 @@ export default function Dashboard() {
 
   const loadRecycle = async () => {
     try {
-      const { data } = await axios.get("/tasks/recycle/all");
+      const { data } = await API.get("/tasks/recycle/all");
       setRecycleBin(data);
     } catch (err) {
       console.error("Recycle load failed:", err);
