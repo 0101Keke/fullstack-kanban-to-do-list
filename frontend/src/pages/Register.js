@@ -28,7 +28,7 @@ function Register() {
     setError("");
 
     try {
-      await API.post("/auth/register", formData);
+      await axios.post("/auth/register", formData);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
